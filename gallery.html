@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCM || GALLERY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="shortcut icon" type="image/x-icon" href="img/team/favicon (2).ico">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy: #1b2a4a;
+    --blue: #37b3e8;
+    --text-dim: #6b7280;
+    --line: #e4e7ec;
+    --bg: #ffffff;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin: 0;
+    background: var(--bg);
+    font-family: 'Poppins', sans-serif;
+    color: var(--navy);
+  }
+
+  .portfolio-section{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 70px 32px 90px;
+  }
+
+  .top-bar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  .eyebrow-link{
+    color: var(--blue);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .get-started{
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 999px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease;
+  }
+
+  .get-started:hover{
+    background: #2a9ed1;
+    transform: translateY(-1px);
+  }
+
+  .portfolio-heading{
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .portfolio-heading h2{
+    font-size: clamp(30px, 4vw, 42px);
+    font-weight: 800;
+    letter-spacing: .03em;
+    margin: 0 0 18px;
+  }
+
+  .divider{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 22px;
+  }
+
+  .divider .line{
+    width: 60px;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .divider .dash{
+    width: 34px;
+    height: 3px;
+    background: var(--blue);
+    border-radius: 2px;
+  }
+
+  .portfolio-heading p{
+    color: var(--text-dim);
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .portfolio-filters{
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 46px;
+  }
+
+  .filter-btn{
+    background: transparent;
+    border: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--navy);
+    padding: 10px 26px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+
+  .filter-btn:hover{
+    color: var(--blue);
+  }
+
+  .filter-btn.active{
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .portfolio-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 860px){
+    .portfolio-grid{ grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 560px){
+    .portfolio-grid{ grid-template-columns: 1fr; }
+    .top-bar{ flex-direction: column; gap: 16px; align-items: flex-start; }
+  }
+
+  .portfolio-item{
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #f2f2f2;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: rise .5s ease forwards;
+  }
+
+  .portfolio-item.tall{ grid-row: span 2; }
+
+  .portfolio-item img{
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .5s ease;
+  }
+
+  .portfolio-item .overlay{
+    position: absolute;
+    inset: 0;
+    background: rgba(27, 42, 74, 0.72);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity .3s ease;
+  }
+
+  .portfolio-item:hover .overlay{ opacity: 1; }
+  .portfolio-item:hover img{ transform: scale(1.06); }
+
+  .overlay .cat{
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .03em;
+  }
+
+  .overlay .title{
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .portfolio-item.hidden{ display: none; }
+
+  @keyframes rise{
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .portfolio-item, .portfolio-item img, .overlay{ animation: none; transition: none; }
+  }
+</style>
+
+
+    <!-- CSS here -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="css/animate.min.css">
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/slick.css">
+    <link rel="stylesheet" href="css/meanmenu.css">
+    <link rel="stylesheet" href="css/default.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <!-- header-start -->
+    <header id="home">
+      <div class="header-area header-sticky">
+        <!-- header-top -->
+        <div class="header-top primary-bg">
+          <div class="container">
+            <div class="row">
+              <div class="col-xl-6 col-lg-6 col-md-6 col-12">
+                <div class="header-contact-info d-flex">
+                  <div class="header-contact header-contact-phone">
+                    <span class="ti-headphone"></span>
+                    <p class="phone-number">+263775884500</p>
+                  </div>
+                  <div class="header-contact header-contact-email">
+                    <span class="ti-email"></span>
+                    <p class="email-name">jcmprimaryschools@gmail.com</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+                <div class="header-social-icon-list">
+                  <ul>
+                    <li>
+                      <a href="https://www.facebook.com/p/JCM-Group-of-Schools-61587109804975/"><span class="ti-facebook"></span></a>
+                    </li>
+                    <li>
+                      <a href="#"><span class="ti-google"></span></a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /end header-top -->
+        <!-- header-bottom -->
+        <div class="header-bottom-area" style="transition: 0.6s">
+          <div class="container">
+            <div class="row align-items-center">
+              <div class="col-xl-2 col-lg-2 col-md-6 col-6">
+                <div class="logo">
+                  <a href="index_2.html">
+                    <img src="img/logo/logo.png" alt="" />
+                  </a>
+                </div>
+              </div>
+              <div class="col-xl-10 col-lg-10 col-md-6 col-6">
+                <div class="header-bottom-icon f-right">
+                  <ul>
+                    <li>
+                      <a href="#"><span class="ti-search"></span></a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="main-menu f-right">
+                  <nav id="mobile-menu" style="display: block">
+                    <ul>
+                      <li>
+                        <a href="#home">Home</a>
+                      </li>
+                      <li>
+                        <a href="index.html#abou">About</a>
+                      </li>
+                      <li>
+                        <a href="gallery.html">Gallery</a>
+                      </li>
+                      <li>
+                        <a href="events_01.htm">Events</a>
+                      </li>
+
+                      <li>
+                        <a href="contact_us.html">Contact</a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="mobile-menu"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /end header-bottom -->
+      </div>
+    </header>
+    <!-- header-end -->
+
+   <!-- slider-start -->
+    <div class="slider-area">
+        <div class="page-title">
+            <div class="single-slider slider-height slider-height-breadcrumb d-flex align-items-center" style="background-image: url(img/slider/jcmbanne4.jpg);">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="slider-content slider-content-breadcrumb text-center">
+                                <h1 class="white-color f-700">Our Visuals</h1>
+                                <nav class="text-center" aria-label="breadcrumb">
+                                    <ol class="breadcrumb justify-content-center">
+                                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">Gallery</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- slider-end -->
+<section class="portfolio-section">
+
+
+
+  <div class="portfolio-heading">
+    <h2>GALLERY</h2>
+    <div class="divider">
+      <span class="line"></span>
+      <span class="dash"></span>
+      <span class="line"></span>
+    </div>
+    <p>Take a look at our visuals</p>
+  </div>
+
+  <div class="portfolio-filters" id="portfolioFilters"></div>
+
+  <div class="portfolio-grid" id="portfolioGrid"></div>
+
+</section>
+
+    <!-- footer start -->
+    <footer id="Contact">
+        <div class="footer-area primary-bg pt-150">
+            <div class="container">
+                <div class="footer-top pb-35">
+                    <div class="row">
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="footer-widget mb-30">
+                                <div class="">
+                                   <h3 style="color: #FFD700; font-weight: bold;">Our Mission</h3>
+                                </div>
+                                <div class="footer-para">
+                                    <p>Our mission is to reach every child and teach them to adapt and fit meaningfully into society through an innovative learning environment. Each lesson at JCM inspires creativity, curiosity, and a spirit of resilience. </p>
+                                </div>
+                                <div class="footer-socila-icon">
+                                    <span>Follow Us</span>
+                                    <div class="footer-social-icon-list">
+                                        <ul>
+                                            <li><a href="https://www.facebook.com/p/JCM-Group-of-Schools-61587109804975/"><span class="ti-facebook"></span></a></li>
+                                            <li><a href="#"><span class="ti-twitter-alt"></span></a></li>  <li><a href="https://www.tiktok.com/@jcm_groupofschools?is_from_webapp=1&sender_device=pc"><span class="ti-dribbble"></span></a></li>
+                                            <li><a href="#"><span class="ti-linkedin"></span></a></li>
+                                            <li><a href="#"><span class="ti-google"></span></a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="footer-widget mb-30">
+                                <div class="footer-heading">
+                                    <h1>Quick Links</h1>
+                                </div>
+                                <div class="footer-menu clearfix">
+                                    <ul>
+                                        <li><a href="#">Privacy Policy</a></li>
+                                        <li><a href="#">Support</a></li>
+                                        <li><a href="#">Consultation</a></li>
+                                        <li><a href="#">Our Services</a></li>
+                                        <li><a href="#">About Us</a></li>
+                                        <li><a href="#">Contact Us</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4 d-lg-none d-xl-block col-md-6">
+                            <div class="footer-widget mb-30">
+                                <div class="footer-heading">
+                                    <h1>Recent Post</h1>
+                                </div>
+                                <div class="recent-post d-flex mb-25">
+                                    <div class="recent-post-thumb">
+                                        <img src="img/testimonials/testimonial.jpg" alt="">
+                                    </div>
+                                    <div class="recent-post-text">
+                                        <p>Schools opening Day</p>
+                                        <div class="footer-time">
+                                            <span class="ti-time"></span>
+                                            <span class="footer-published-time">Sep 2026</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="recent-post d-flex">
+                                    <div class="recent-post-thumb">
+                                        <img src="img/team/" alt="">
+                                    </div>
+                                    <div class="recent-post-text">
+                                        <p>Schools Closing Day</p>
+                                        <div class="footer-time">
+                                            <span class="ti-time"></span>
+                                            <span class="footer-published-time">Dec 2026</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4  col-md-6">
+                            <div class="footer-widget mb-30">
+                                <div class="footer-heading">
+                                    <h1>Contact Us</h1>
+                                </div>
+                                <div class="footer-contact-list">
+                                    <div class="single-footer-contact-info">
+                                        <span class="ti-headphone "></span>
+                                        <span class="footer-contact-list-text">+263 788 381 093</span>
+                                    </div>
+                                    <div class="single-footer-contact-info">
+                                        <span class="ti-email "></span>
+                                        <span class="footer-contact-list-text">jcmprimaryschoolofficial@gmail.com</span>
+                                    </div>
+                                    <div class="single-footer-contact-info">
+                                        <span class="ti-location-pin"></span>
+                                        <span class="footer-contact-list-text">536 Mbundane,Umguza,Bulawayo</span>
+                                    </div>
+                                </div>
+                                <div class="opening-time">
+                                    <span>Opening Hours</span>
+                                    <span class="opening-date">
+                                        Monday - Friday : 07:30 am - 04:00 pm
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- footer end -->
+
+<script>
+
+ 
+  const items = [
+    { id: 1, src: "img/eventss/tino.jpg",   title: "School Trip",       cat: "Trips",  tall: true },
+    { id: 2, src: "img/eventss/alvin.jpg",  title: "Prize Giving Day",  cat: "Events", tall: true },
+    { id: 3, src: "img/eventss/nonku.jpg", title: "Around Campus",     cat: "Random", tall: true },
+    { id: 4, src: "img/eventss/banner.jpg",   title: "Field Excursion",   cat: "Trips" },
+    { id: 5, src: "img/eventss/protocol.jpg",  title: "Sports Day",        cat: "Events" },
+    { id: 6, src: "img/eventss/nonku.jpg", title: "Classroom Moment",  cat: "Random" },
+    { id: 7, src: "img/eventss/alvin.jpg",   title: "Educational Tour",  cat: "Trips" },
+    { id: 8, src: "img/team/amagugu.jpg",  title: "Cultural Day",      cat: "Events" },
+    { id: 9, src: "img/eventss/nonku.jpg", title: "Playground",        cat: "Random" },
+  ];
+
+  const grid = document.getElementById('portfolioGrid');
+  const filtersEl = document.getElementById('portfolioFilters');
+  const categories = ["All", "Trips", "Events", "Random"];
+  let activeFilter = "All";
+
+  function renderFilters(){
+    filtersEl.innerHTML = categories.map(cat =>
+      `<button class="filter-btn ${cat === activeFilter ? 'active' : ''}" data-cat="${cat}">${cat}</button>`
+    ).join('');
+
+    filtersEl.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeFilter = btn.dataset.cat;
+        renderFilters();
+        renderGrid();
+      });
+    });
+  }
+
+  function renderGrid(){
+    const list = activeFilter === "All" ? items : items.filter(i => i.cat === activeFilter);
+
+    grid.innerHTML = list.map((item, i) => `
+      <figure class="portfolio-item ${item.tall ? 'tall' : ''}" style="animation-delay:${i * 0.05}s">
+        <img src="${item.src}" alt="${item.title}" loading="lazy">
+        <div class="overlay">
+          <span class="cat">${item.cat}</span>
+          <span class="title">${item.title}</span>
+        </div>
+      </figure>
+    `).join('');
+  }
+
+  renderFilters();
+  renderGrid();
+</script>
+
+</body>
+</html>
