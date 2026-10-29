@@ -262,6 +262,11 @@ small.sub { display: block; color: var(--ink-3); font-size: 12px; }
 .field small { color: var(--ink-3); font-size: 12px; }
 .field.span { grid-column: 1 / -1; }
 .form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.fundraising-form { grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: end; gap: 10px; }
+.fundraising-form.with-campus { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.fundraising-form > * { min-width: 0; width: 100%; }
+.fundraising-form .input, .fundraising-form .select { min-width: 0; width: 100%; }
+.fundraising-form .btn { white-space: nowrap; }
 .form.one { grid-template-columns: minmax(0, 1fr); }
 .form-f { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .form-f.pad { padding: 0 18px 16px; }
@@ -414,6 +419,7 @@ small.sub { display: block; color: var(--ink-3); font-size: 12px; }
   .report-chart .chart { min-width: 0; }
 }
 @media (max-width: 800px) {
+  .fundraising-form, .fundraising-form.with-campus { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .report-controls .form { grid-template-columns: minmax(0, 1fr); }
   .report-controls .form-f { grid-column: 1; }
   .report-controls .form-f .btn { flex: 1 1 180px; }
@@ -425,6 +431,15 @@ small.sub { display: block; color: var(--ink-3); font-size: 12px; }
 }
 @media (max-width: 560px) {
   .form { grid-template-columns: minmax(0, 1fr); }
+  .fundraising-form, .fundraising-form.with-campus { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .fundraising-form .btn { grid-column: 1 / -1; }
+  .fundraising-records { overflow: visible; }
+  .fundraising-records table, .fundraising-records tbody { display: block; }
+  .fundraising-records thead { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .fundraising-records tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+  .fundraising-records tbody tr:last-child { border-bottom: 0; }
+  .fundraising-records tbody td, .fundraising-records tbody td.r { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; padding: 8px 0; border: 0; text-align: left; overflow-wrap: anywhere; }
+  .fundraising-records tbody td::before { content: attr(data-label); color: var(--ink-3); font-size: 10px; font-weight: 700; text-transform: uppercase; }
   .page-h h1, .welcome h1 { font-size: 22px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi { padding: 12px; gap: 10px; flex-direction: column; align-items: flex-start; }
@@ -2184,9 +2199,9 @@ Amount: ${money(p.amount)}`;
         ["Total Balance on Expenses", expenseTotal, "orange"],
         ["Balance left", balanceLeft, balanceLeft < 0 ? "orange" : "blue"]
       ].map(([label, amount, tone]) => h("div", { key: label, className: "kpi static t-" + tone }, h("span", { className: "kpi-t" }, h("small", null, label), h("b", null, money(amount))))),
-      admin && h("section", { className: "card" },
+      admin && h("section", { className: "card fundraising-entry" },
         h("h2", null, "Add fundraising record"),
-        h("div", { className: "form" },
+        h("div", { className: "form fundraising-form" + (campus === "all" ? " with-campus" : "") },
           h("input", { className: "input", placeholder: "Fundraising name", value: f.name, onChange: (e) => setF({ ...f, name: e.target.value }) }),
           h("input", { className: "input", placeholder: "Category", value: f.category, onChange: (e) => setF({ ...f, category: e.target.value }) }),
           campus === "all" && h("select", { className: "select", value: f.campus, onChange: (e) => { const nextCampus = e.target.value; setF({ ...f, campus: nextCampus, className: gradesFor(nextCampus)[0] }); } }, CAMPUSES.map((item) => h("option", { key: item.id, value: item.id }, item.name))),
@@ -2196,7 +2211,7 @@ Amount: ${money(p.amount)}`;
           h("button", { className: "btn", onClick: add }, "Add record"))),
       h("section", { className: "card flush" },
         h("div", { className: "card-h pad" }, h("h2", null, "Fundraising records")),
-        rows.length ? h("div", { className: "tbl-wrap" }, h("table", { className: "tbl compact" },
+        rows.length ? h("div", { className: "tbl-wrap fundraising-records" }, h("table", { className: "tbl compact" },
           h("thead", null, h("tr", null,
             h("th", null, "Fundraising name"),
             h("th", null, "Date"),
@@ -2205,12 +2220,12 @@ Amount: ${money(p.amount)}`;
             h("th", { className: "r" }, "Amount"),
             h("th", { className: "r" }, "Total for all classes"))),
           h("tbody", null, rows.map((row) => h("tr", { key: row.id },
-            h("td", null, row.name || row.category || "Fundraising"),
-            h("td", null, fmtDate(row.date)),
-            h("td", null, row.category || "—"),
-            h("td", null, row.className || "—"),
-            h("td", { className: "r num" }, money(row.amount)),
-            h("td", { className: "r num" }, money(eventTotal(row)))))))) : h(Empty, { title: "No fundraising recorded" }))));
+            h("td", { "data-label": "Fundraising name" }, row.name || row.category || "Fundraising"),
+            h("td", { "data-label": "Date" }, fmtDate(row.date)),
+            h("td", { "data-label": "Category" }, row.category || "—"),
+            h("td", { "data-label": "Class" }, row.className || "—"),
+            h("td", { className: "r num", "data-label": "Amount" }, money(row.amount)),
+            h("td", { className: "r num", "data-label": "Total for all classes" }, money(eventTotal(row)))))))) : h(Empty, { title: "No fundraising recorded" }))));
   }
   function Activities() {
     const { db, d, set, toast } = useApp();
