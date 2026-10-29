@@ -40,3 +40,7 @@ drop policy if exists "jcm signup requests read" on public.jcm_signup_requests;
 drop policy if exists "jcm signup requests write" on public.jcm_signup_requests;
 create policy "jcm signup requests read" on public.jcm_signup_requests for select to authenticated using (auth.uid() is not null);
 create policy "jcm signup requests write" on public.jcm_signup_requests for all to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+
+grant select, insert, update on public.jcm_portal_state to authenticated;
+grant select, insert, update on public.jcm_portal_accounts to authenticated;
+grant select, insert, update on public.jcm_signup_requests to authenticated;

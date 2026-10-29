@@ -11,6 +11,22 @@
 <script src="jcm-primary-fees.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  window.jcmShowSyncNotice = (message, state = 'error') => {
+    let notice = document.getElementById('jcm-sync-notice');
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = 'jcm-sync-notice';
+      notice.style.cssText = 'position:fixed;z-index:10001;left:50%;bottom:16px;transform:translateX(-50%);width:min(680px,calc(100vw - 24px));padding:12px 16px;border-radius:8px;box-shadow:0 6px 24px #0003;font:600 13px/1.45 system-ui,sans-serif';
+      document.body.appendChild(notice);
+    }
+    notice.setAttribute('role', state === 'error' ? 'alert' : 'status');
+    notice.style.background = state === 'error' ? '#fff0ed' : '#e8f6ee';
+    notice.style.color = state === 'error' ? '#8a261b' : '#145c36';
+    notice.style.border = `1px solid ${state === 'error' ? '#efb5aa' : '#a9d8b8'}`;
+    notice.textContent = message;
+    clearTimeout(notice.dismissTimer);
+    if (state === 'success') notice.dismissTimer = setTimeout(() => notice.remove(), 3500);
+  };
   window.jcmSupabaseReady = (async () => {
     const fallback = { enabled: false };
     try {
@@ -21,6 +37,11 @@
       const client = window.supabase.createClient(config.url, config.anonKey);
       let stateTimer = null;
       let hydrated = false;
+      let stateWrite = Promise.resolve();
+      const reportSync = (state, message) => {
+        window.dispatchEvent(new CustomEvent('jcm-supabase-sync', { detail: { state, message } }));
+        window.jcmShowSyncNotice?.(message, state);
+      };
       const read = async (table, id) => {
         const { data, error } = await client.from(table).select('*').eq('id', id).maybeSingle();
         if (error) throw error;
@@ -28,7 +49,12 @@
       };
       const write = async (table, id, value, column) => {
         const { error } = await client.from(table).upsert({ id, [column]: value, updated_at: new Date().toISOString() });
-        if (error) console.error(`Supabase ${table} save failed`, error);
+        if (error) throw error;
+      };
+      const saveState = (state) => {
+        const save = () => write('jcm_portal_state', 'primary', state, 'state');
+        stateWrite = stateWrite.then(save, save);
+        return stateWrite;
       };
       const collections = ["students", "apps", "payments", "expenses", "exams", "messages", "staff", "leaves", "payrolls", "fundraising", "activities"];
       const migrate = (remote, seed) => {
@@ -47,12 +73,20 @@
           await write('jcm_portal_state', 'primary', seed, 'state');
           return { state: seed, fromDatabase: false };
         },
-        markHydrated() { hydrated = true; },
+        markHydrated() {
+          hydrated = true;
+          window.jcmShowSyncNotice?.('Connected to the shared Supabase database.', 'success');
+        },
         async loadState() { return (await read('jcm_portal_state', 'primary'))?.state || null; },
         queueSave(state) {
           if (!hydrated) return;
           clearTimeout(stateTimer);
-          stateTimer = setTimeout(() => write('jcm_portal_state', 'primary', state, 'state'), 500);
+          stateTimer = setTimeout(() => saveState(state)
+            .then(() => reportSync('saved', 'Changes saved to the shared Supabase database.'))
+            .catch((error) => {
+              console.error('Supabase school data save failed', error);
+              reportSync('error', `Changes are only saved on this browser. Supabase save failed: ${error.message || error}`);
+            }), 300);
         },
         async loadAccounts() { return (await read('jcm_portal_accounts', 'primary'))?.accounts || null; },
         saveAccounts(accounts) { return write('jcm_portal_accounts', 'primary', accounts, 'accounts'); },
@@ -2537,14 +2571,25 @@ Amount: ${money(p.amount)}`;
       const bootstrap = async () => {
         const seed = loadDb();
         const status = await window.jcmSupabaseReady;
-        if (status?.enabled) {
+        if (!status?.enabled) {
+          window.jcmShowSyncNotice?.("Local storage only: configure Supabase in Netlify for changes to sync between devices.", "error");
+        } else {
+          const { data, error } = await status.client.auth.getSession();
+          if (error) throw error;
+          if (data?.session) {
           const result = await status.bootstrapState(seed);
           if (active && result?.state) setDb(result.state);
           status.markHydrated();
+            window.jcmShowSyncNotice?.("Connected to the shared Supabase database.", "success");
+          }
         }
         if (active) setDataReady(true);
       };
-      bootstrap().catch((error) => { console.warn("Supabase database bootstrap failed", error); if (active) setDataReady(true); });
+      bootstrap().catch((error) => {
+        console.warn("Supabase database bootstrap failed", error);
+        window.jcmShowSyncNotice?.(`Shared database unavailable: ${error.message || error}`, "error");
+        if (active) setDataReady(true);
+      });
       window.addEventListener("jcm-supabase-refresh", refresh);
       return () => { active = false; window.removeEventListener("jcm-supabase-refresh", refresh); };
     }, []);
@@ -2742,9 +2787,18 @@ Amount: ${money(p.amount)}`;
     if (a.role === "Director" && !window.__jcmReadonlyObserver) { window.__jcmReadonlyObserver = new MutationObserver(() => decorate()); window.__jcmReadonlyObserver.observe(document.querySelector("main") || document.body, { childList: true, subtree: true }); }
   };
   const apply = (account, username) => { window.__jcmSession = { ...account, username }; sessionStorage.setItem("jcm-session", JSON.stringify(window.__jcmSession)); modal.hidden = true; const select = document.getElementById("campus-filter"); if (select) { select.value = account.campus; select.dispatchEvent(new Event("change", { bubbles: true })); } setTimeout(decorate, 50); setTimeout(decorate, 400); };
-  const saved = sessionStorage.getItem("jcm-session"); if (saved) { try { const a = JSON.parse(saved); apply(a, a.username); } catch (_) {} }
+  const LOCAL_DEMO_ALLOWED = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+  const saved = sessionStorage.getItem("jcm-session");
+  if (saved && LOCAL_DEMO_ALLOWED) { try { const a = JSON.parse(saved); apply(a, a.username); } catch (_) {} }
   window.jcmSupabaseReady?.then(async (status) => {
-    if (!status?.enabled) return;
+    if (!status?.enabled) {
+      if (saved && !LOCAL_DEMO_ALLOWED) {
+        sessionStorage.removeItem("jcm-session");
+        window.__jcmSession = null;
+        modal.hidden = false;
+      }
+      return;
+    }
     const { data } = await window.jcmSupabase.client.auth.getSession();
     const user = data?.session?.user;
     if (!user) {
@@ -2796,6 +2850,10 @@ Amount: ${money(p.amount)}`;
           name: metadata.name || email,
           approved: true
         }, metadata.username || email);
+        return;
+      }
+      if (!LOCAL_DEMO_ALLOWED) {
+        error.textContent = "Shared sign-in is unavailable. Configure SUPABASE_URL and SUPABASE_ANON_KEY in Netlify, then redeploy.";
         return;
       }
       const username = normalizeUsername(usernameInput), account = accounts[username];
