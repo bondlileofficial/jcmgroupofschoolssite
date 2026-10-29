@@ -62,6 +62,28 @@
           const { data, error } = await client.auth.signInWithPassword({ email, password });
           return { configured: true, data, error };
         },
+        async signUp(email, password, metadata) {
+          return client.auth.signUp({
+            email,
+            password,
+            options: {
+              data: metadata,
+              emailRedirectTo: `${location.origin}${location.pathname}`
+            }
+          });
+        },
+        async sendPasswordReset(email) {
+          return client.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}${location.pathname}` });
+        },
+        async signInWithGoogle() {
+          return client.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: `${location.origin}${location.pathname}` }
+          });
+        },
+        async updatePassword(password) {
+          return client.auth.updateUser({ password });
+        },
         async signOut() { return client.auth.signOut(); }
       };
     } catch (error) {
@@ -2120,12 +2142,75 @@ Amount: ${money(p.amount)}`;
     return h(React.Fragment, null, h(PageHead, { title: "Finance", sub: `${campus === "all" ? "All campuses" : campusName(campus)} · income by category and expenses` }), h("div", { className: "grid-2" }, h("section", { className: "card" }, h("h2", null, "Income by category"), h("ul", { className: "mini-list" }, Object.entries(income).map(([name, amount]) => h("li", { key: name }, h("span", null, name), h("b", null, money(amount)))))), h("section", { className: "card" }, h("h2", null, "Expenses by category"), h("ul", { className: "mini-list" }, Object.entries(expenses).map(([name, amount]) => h("li", { key: name }, h("span", null, name), h("b", null, money(amount))))))));
   }
   function Fundraising() {
-    const { db, set, toast, campus } = useApp();
+    const { db, d, set, toast, campus } = useApp();
     const admin = window.__jcmSession?.role === "Admin";
-    const [f, setF] = useState4({ category: "", className: gradesFor(campus === "all" ? "primary" : campus)[0], amount: "", date: TODAY, note: "" });
+    const [f, setF] = useState4({ name: "", category: "", campus: "primary", className: gradesFor(campus === "all" ? "primary" : campus)[0], amount: "", date: TODAY, note: "" });
     const rows = (db.fundraising || []).filter((x) => campus === "all" || x.campus === campus).sort((a, b) => b.date.localeCompare(a.date));
-    const add = () => { if (!admin || !f.category.trim() || !(Number(f.amount) > 0)) return; const id = nextId(db.fundraising || [], "FND", 4); set((p) => ({ ...p, fundraising: [...(p.fundraising || []), { ...f, id, campus: campus === "all" ? "primary" : campus, amount: Number(f.amount), category: f.category.trim() }] })); toast("Fundraising recorded"); setF({ ...f, amount: "", note: "" }); };
-    return h(React.Fragment, null, h(PageHead, { title: "Fundraising", sub: "Track money raised by class and category" }), admin && h("section", { className: "card" }, h("h2", null, "Add fundraising"), h("p", { className: "muted-s" }, "Use the fields above to record a category, class and amount."), h("div", { className: "form" }, h("input", { className: "input", placeholder: "Category", value: f.category, onChange: (e) => setF({ ...f, category: e.target.value }) }), h("input", { className: "input", placeholder: "Class", value: f.className, onChange: (e) => setF({ ...f, className: e.target.value }) }), h("input", { className: "input", type: "number", placeholder: "Amount", value: f.amount, onChange: (e) => setF({ ...f, amount: e.target.value }) }), h("input", { className: "input", type: "date", value: f.date, onChange: (e) => setF({ ...f, date: e.target.value }) }), h("button", { className: "btn", onClick: add }, "Add record"))), h("section", { className: "card" }, h("h2", null, "Fundraising records"), rows.length ? rows.map((r) => h("p", { key: r.id }, r.category, " · ", r.className, " · ", fmtDate(r.date), " · ", money(r.amount))) : h(Empty, { title: "No fundraising recorded" })));
+    const fundraisingTotal = rows.reduce((total, row) => total + Number(row.amount || 0), 0);
+    const expenseTotal = d.expenses.reduce((total, row) => total + Number(row.amount || 0), 0);
+    const balanceLeft = fundraisingTotal - expenseTotal;
+    const eventTotals = new Map();
+    rows.forEach((row) => {
+      const eventKey = `${row.campus || "primary"}|${(row.name || row.category || "Fundraising").trim().toLowerCase()}|${(row.category || "").trim().toLowerCase()}`;
+      eventTotals.set(eventKey, (eventTotals.get(eventKey) || 0) + Number(row.amount || 0));
+    });
+    const eventTotal = (row) => eventTotals.get(`${row.campus || "primary"}|${(row.name || row.category || "Fundraising").trim().toLowerCase()}|${(row.category || "").trim().toLowerCase()}`) || 0;
+    const entryCampus = campus === "all" ? f.campus : campus;
+    const classOptions = gradesFor(entryCampus);
+    const className = classOptions.includes(f.className) ? f.className : classOptions[0];
+    const add = () => {
+      if (!admin || !f.name.trim() || !f.category.trim() || !(Number(f.amount) > 0)) return;
+      const id = nextId(db.fundraising || [], "FND", 4);
+      const recordCampus = campus === "all" ? f.campus : campus;
+      set((previous) => ({
+        ...previous,
+        fundraising: [...(previous.fundraising || []), {
+          ...f,
+          id,
+          campus: recordCampus,
+          className,
+          name: f.name.trim(),
+          category: f.category.trim(),
+          amount: Number(f.amount)
+        }]
+      }));
+      toast("Fundraising recorded");
+      setF({ ...f, name: "", amount: "", note: "" });
+    };
+    return h(React.Fragment, null,
+      h(PageHead, { title: "Fundraising", sub: "Track money raised by class and category" }),
+      h("div", { className: "kpis" }, [
+        ["Total Balance for Fundraising", fundraisingTotal, "green"],
+        ["Total Balance on Expenses", expenseTotal, "orange"],
+        ["Balance left", balanceLeft, balanceLeft < 0 ? "orange" : "blue"]
+      ].map(([label, amount, tone]) => h("div", { key: label, className: "kpi static t-" + tone }, h("span", { className: "kpi-t" }, h("small", null, label), h("b", null, money(amount))))),
+      admin && h("section", { className: "card" },
+        h("h2", null, "Add fundraising record"),
+        h("div", { className: "form" },
+          h("input", { className: "input", placeholder: "Fundraising name", value: f.name, onChange: (e) => setF({ ...f, name: e.target.value }) }),
+          h("input", { className: "input", placeholder: "Category", value: f.category, onChange: (e) => setF({ ...f, category: e.target.value }) }),
+          campus === "all" && h("select", { className: "select", value: f.campus, onChange: (e) => { const nextCampus = e.target.value; setF({ ...f, campus: nextCampus, className: gradesFor(nextCampus)[0] }); } }, CAMPUSES.map((item) => h("option", { key: item.id, value: item.id }, item.name))),
+          h("select", { className: "select", value: className, onChange: (e) => setF({ ...f, className: e.target.value }) }, classOptions.map((grade) => h("option", { key: grade, value: grade }, grade))),
+          h("input", { className: "input", type: "number", min: "0.01", step: "0.01", placeholder: "Amount", value: f.amount, onChange: (e) => setF({ ...f, amount: e.target.value }) }),
+          h("input", { className: "input", type: "date", value: f.date, onChange: (e) => setF({ ...f, date: e.target.value }) }),
+          h("button", { className: "btn", onClick: add }, "Add record"))),
+      h("section", { className: "card flush" },
+        h("div", { className: "card-h pad" }, h("h2", null, "Fundraising records")),
+        rows.length ? h("div", { className: "tbl-wrap" }, h("table", { className: "tbl compact" },
+          h("thead", null, h("tr", null,
+            h("th", null, "Fundraising name"),
+            h("th", null, "Date"),
+            h("th", null, "Category"),
+            h("th", null, "Class"),
+            h("th", { className: "r" }, "Amount"),
+            h("th", { className: "r" }, "Total for all classes"))),
+          h("tbody", null, rows.map((row) => h("tr", { key: row.id },
+            h("td", null, row.name || row.category || "Fundraising"),
+            h("td", null, fmtDate(row.date)),
+            h("td", null, row.category || "—"),
+            h("td", null, row.className || "—"),
+            h("td", { className: "r num" }, money(row.amount)),
+            h("td", { className: "r num" }, money(eventTotal(row)))))))) : h(Empty, { title: "No fundraising recorded" }))));
   }
   function Activities() {
     const { db, d, set, toast } = useApp();
@@ -2415,20 +2500,25 @@ Amount: ${money(p.amount)}`;
     const [dataReady, setDataReady] = useState5(false);
     useEffect4(() => {
       let active = true;
-      const refresh = () => window.jcmSupabaseReady?.then(async () => {
-        const remote = await window.jcmSupabase?.loadState?.();
+      const refresh = async () => {
+        const status = await window.jcmSupabaseReady;
+        if (!status?.enabled) return;
+        const remote = await status.loadState();
         if (remote && remote.v === 1) {
           if (active) setDb(remote);
-          window.jcmSupabase?.markHydrated?.();
+          status.markHydrated();
           return;
         }
-        const sessionResult = await window.jcmSupabase?.client?.auth?.getSession?.();
+        const sessionResult = await status.client.auth.getSession();
         if (sessionResult?.data?.session) {
-          const result = await window.jcmSupabase.bootstrapState(loadDb());
+          const result = await status.bootstrapState(loadDb());
           if (active && result?.state) setDb(result.state);
-          window.jcmSupabase.markHydrated();
+          status.markHydrated();
+          return;
         }
-      }).catch((error) => console.warn("Supabase state load failed", error));
+        throw new Error("Sign in to Supabase before loading shared school records.");
+      };
+      window.jcmRefreshSharedState = refresh;
       const bootstrap = async () => {
         const seed = loadDb();
         const status = await window.jcmSupabaseReady;
@@ -2583,20 +2673,38 @@ Amount: ${money(p.amount)}`;
     return JSON.parse(new TextDecoder().decode(bytes));
   };
   const onGoogleCredential = (response) => {
-    let identity;
-    try { identity = decodeGoogleCredential(response.credential); } catch (_) { error.textContent = "Google returned an unreadable sign-in response. Please try again."; return; }
-    if (identity.aud !== GOOGLE_CLIENT_ID || identity.exp * 1000 <= Date.now() || !identity.email_verified || !identity.email || !identity.sub) { error.textContent = "Google could not verify this account for JCM. Please try again."; return; }
-    const email = identity.email.trim().toLowerCase();
-    if (googleSignupPanel?.isConnected) {
-      const p = googleSignupPanel, usernameInput = p.querySelector("#su-username").value.trim(), username = normalizeUsername(usernameInput), name = p.querySelector("#su-name").value.trim() || identity.name || "Google user", requests = readJson(REQUEST_KEY, []);
-      if (!/^[a-zA-Z0-9._-]{3,40}$/.test(usernameInput)) { p.querySelector("#su-error").textContent = "Choose a username (3–40 letters, numbers, dot, underscore or hyphen) before continuing with Google."; return; }
-      if (accounts[username] || requests.some((r) => r.status === "Pending" && (normalizeUsername(r.username || "") === username || String(r.email || "").toLowerCase() === email))) { p.querySelector("#su-error").textContent = "That username or Google email is already registered or awaiting approval."; return; }
-      requests.push({ id: "REQ-" + Date.now(), username: usernameInput, name, email, googleSub: identity.sub, authProvider: "google", role: p.querySelector("#su-role").value, campus: p.querySelector("#su-campus").value, className: p.querySelector("#su-grade").value, status: "Pending", submitted: new Date().toISOString() });
-      localStorage.setItem(REQUEST_KEY, JSON.stringify(requests)); googleSignupPanel = null; closeAuth(); error.textContent = "Google verified. Your account request was sent for administrator approval."; return;
-    }
-    const match = Object.entries(accounts).find(([key, a]) => String(a.email || key).trim().toLowerCase() === email && a.approved === true && (!a.googleSub || a.googleSub === identity.sub));
-    if (!match) { error.textContent = "No approved JCM account is linked to this Google email. Create an account request first and wait for admin approval."; return; }
-    const [key, account] = match; account.email = email; account.googleSub = identity.sub; account.authProvider = "google"; accounts[key] = account; localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts)); apply(account, account.username || key);
+    window.jcmSupabaseReady?.then(async (status) => {
+      if (!status?.enabled) {
+        error.textContent = "Google sign-in requires Supabase Auth to be configured.";
+        return;
+      }
+      const { data, error: authError } = await status.client.auth.signInWithIdToken({ provider: "google", token: response.credential });
+      if (authError || !data?.user) {
+        error.textContent = authError?.message || "Google sign-in failed.";
+        return;
+      }
+      try {
+        await window.jcmRefreshSharedState();
+      } catch (loadError) {
+        await status.signOut();
+        error.textContent = "Signed in, but shared school records could not be loaded. Check the Supabase table setup and access policies.";
+        console.error("Shared school data load failed", loadError);
+        return;
+      }
+      const user = data.user;
+      const metadata = user.user_metadata || {};
+      apply({
+        username: metadata.username || user.email,
+        email: user.email,
+        role: metadata.role || "Student",
+        campus: metadata.campus || metadata.school || "primary",
+        className: metadata.className || "",
+        name: metadata.name || user.email,
+        approved: true
+      }, metadata.username || user.email);
+    }).catch((authError) => {
+      error.textContent = authError.message || "Google sign-in failed.";
+    });
   };
   const renderGoogleButton = async (container, width = 300) => {
     try {
@@ -2621,58 +2729,161 @@ Amount: ${money(p.amount)}`;
   const apply = (account, username) => { window.__jcmSession = { ...account, username }; sessionStorage.setItem("jcm-session", JSON.stringify(window.__jcmSession)); modal.hidden = true; const select = document.getElementById("campus-filter"); if (select) { select.value = account.campus; select.dispatchEvent(new Event("change", { bubbles: true })); } setTimeout(decorate, 50); setTimeout(decorate, 400); };
   const saved = sessionStorage.getItem("jcm-session"); if (saved) { try { const a = JSON.parse(saved); apply(a, a.username); } catch (_) {} }
   window.jcmSupabaseReady?.then(async (status) => {
-    if (!status?.enabled || saved) return;
+    if (!status?.enabled) return;
     const { data } = await window.jcmSupabase.client.auth.getSession();
     const user = data?.session?.user;
-    if (!user) return;
+    if (!user) {
+      if (saved) {
+        sessionStorage.removeItem("jcm-session");
+        window.__jcmSession = null;
+        modal.hidden = false;
+      }
+      return;
+    }
+    await window.jcmRefreshSharedState();
     const metadata = user.user_metadata || {};
     apply({ username: metadata.username || user.email, email: user.email, role: metadata.role || "Student", campus: metadata.campus || metadata.school || "primary", className: metadata.className || "", name: metadata.name || user.email, approved: true }, metadata.username || user.email);
-    window.dispatchEvent(new Event("jcm-supabase-refresh"));
-  }).catch((error) => console.warn("Supabase session restore failed", error));
+  }).catch((error) => {
+    console.warn("Supabase session restore failed", error);
+    sessionStorage.removeItem("jcm-session");
+    window.__jcmSession = null;
+    modal.hidden = false;
+  });
   const normalizeUsername = (value) => value.trim().toLowerCase();
   window.jcmSupabaseReady?.then((status) => {
-    if (!status?.enabled) return;
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      e.stopImmediatePropagation();
-      const email = document.getElementById("jcm-user").value.trim().toLowerCase();
+      const usernameInput = document.getElementById("jcm-user").value.trim();
       const password = document.getElementById("jcm-pass").value;
-      const result = await window.jcmSupabase.signIn(email, password);
-      if (result.error || !result.data?.user) {
-        error.textContent = result.error?.message || "Unable to sign in.";
+      if (status?.enabled) {
+        const email = usernameInput.toLowerCase();
+        const result = await window.jcmSupabase.signIn(email, password);
+        if (result.error || !result.data?.user) {
+          error.textContent = result.error?.message || "Unable to sign in.";
+          return;
+        }
+        try {
+          await window.jcmRefreshSharedState();
+        } catch (loadError) {
+          await window.jcmSupabase.signOut();
+          error.textContent = "Signed in, but shared school records could not be loaded. Check the Supabase table setup and access policies.";
+          console.error("Shared school data load failed", loadError);
+          return;
+        }
+        const user = result.data.user;
+        const metadata = user.user_metadata || {};
+        apply({
+          username: metadata.username || email,
+          email,
+          role: metadata.role || "Student",
+          campus: metadata.campus || metadata.school || "primary",
+          className: metadata.className || "",
+          name: metadata.name || email,
+          approved: true
+        }, metadata.username || email);
         return;
       }
-      const user = result.data.user;
-      const metadata = user.user_metadata || {};
-      apply({
-        username: metadata.username || email,
-        email,
-        role: metadata.role || "Student",
-        campus: metadata.campus || metadata.school || "primary",
-        className: metadata.className || "",
-        name: metadata.name || email,
-        approved: true
-      }, metadata.username || email);
-      window.dispatchEvent(new Event("jcm-supabase-refresh"));
-    }, true);
+      const username = normalizeUsername(usernameInput), account = accounts[username];
+      if (!account || account.password !== password) {
+        error.textContent = "Invalid username or password.";
+        return;
+      }
+      if (account.approved !== true) {
+        error.textContent = "Your account is awaiting administrator approval.";
+        return;
+      }
+      apply(account, account.username || usernameInput);
+    });
   });
-  form.addEventListener("submit", (e) => { e.preventDefault(); const usernameInput = document.getElementById("jcm-user").value.trim(), username = normalizeUsername(usernameInput), password = document.getElementById("jcm-pass").value, account = accounts[username]; if (!account || account.password !== password) { error.textContent = "Invalid username or password."; return; } if (account.approved !== true) { error.textContent = "Your account is awaiting administrator approval."; return; } apply(account, account.username || usernameInput); });
   const PORTAL_CAMPUSES = [{ id: "primary", name: "JCM Primary School", grades: ["E.C.D A", "E.C.D B", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7"] }, { id: "academy", name: "JCM Academy", grades: ["E.C.D A", "E.C.D B", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7"] }, { id: "high", name: "JCM High School", grades: ["Form 1", "Form 2", "Form 3", "Form 4", "Form 5", "Form 6"] }];
   const campusOptions = () => PORTAL_CAMPUSES.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
   const gradeOptions = (campus) => (PORTAL_CAMPUSES.find((c) => c.id === campus)?.grades || []).map((g) => `<option>${g}</option>`).join("");
   const closeAuth = () => document.querySelector(".jcm-auth-panel")?.remove();
   const authBox = (title, body) => { closeAuth(); const p = document.createElement("div"); p.className = "jcm-auth-panel"; p.innerHTML = `<div class="jcm-auth-box"><h2>${title}</h2>${body}</div>`; document.body.appendChild(p); return p; };
+  window.jcmSupabaseReady?.then((status) => {
+    if (!status?.enabled) return;
+    status.client.auth.onAuthStateChange((event) => {
+      if (event !== "PASSWORD_RECOVERY") return;
+      const p = authBox("Choose a new password", `<label>New password<input id="rp-new-pass" type="password" minlength="8" autocomplete="new-password" required></label><div class="jcm-auth-actions"><button type="button" id="rp-save">Save password</button></div><p id="rp-error" class="jcm-login-error"></p>`);
+      p.querySelector("#rp-save").onclick = async () => {
+        const password = p.querySelector("#rp-new-pass").value;
+        if (password.length < 8) return p.querySelector("#rp-error").textContent = "Use a password of at least 8 characters.";
+        const { error: updateError } = await status.updatePassword(password);
+        if (updateError) return p.querySelector("#rp-error").textContent = updateError.message;
+        closeAuth();
+        error.textContent = "Password updated. You can now sign in.";
+        await status.signOut();
+      };
+    });
+  });
   document.getElementById("jcm-signup-link").onclick = () => {
-    const p = authBox("Request a school account", `<p>Choose the campus and class that should limit your access. An administrator must approve the request before you can sign in.</p><div class="jcm-grid"><label>Username<input id="su-username" autocomplete="username" required></label><label>Full name<input id="su-name" required></label><label>Gmail or email<input id="su-email" type="email" required></label><label>Account type<select id="su-role"><option>Teacher</option><option>Student</option></select></label><label>Campus<select id="su-campus">${campusOptions()}</select></label><label>Grade / class<select id="su-grade">${gradeOptions("primary")}</select></label><label>Password<div class="jcm-password-wrap"><input id="su-pass" type="password" minlength="8" required><button type="button" class="jcm-eye" data-eye="su-pass" aria-label="Show password">◉</button></div></label></div><div class="jcm-auth-actions"><button type="button" id="su-cancel">Cancel</button><button type="button" id="su-submit">Send request</button></div><p id="su-error" class="jcm-login-error"></p>`);
+    const p = authBox("Create a school account", `<p>Use your email address to register. Supabase may send a verification link before your first sign-in.</p><div class="jcm-grid"><label>Username<input id="su-username" autocomplete="username" required></label><label>Full name<input id="su-name" required></label><label>Email<input id="su-email" type="email" required></label><label>Account type<select id="su-role"><option>Teacher</option><option>Student</option></select></label><label>Campus<select id="su-campus">${campusOptions()}</select></label><label>Grade / class<select id="su-grade">${gradeOptions("primary")}</select></label><label>Password<div class="jcm-password-wrap"><input id="su-pass" type="password" minlength="8" autocomplete="new-password" required><button type="button" class="jcm-eye" data-eye="su-pass" aria-label="Show password">◉</button></div></label></div><div class="jcm-auth-actions"><button type="button" id="su-cancel">Cancel</button><button type="button" id="su-submit">Create account</button></div><p id="su-error" class="jcm-login-error"></p>`);
     p.querySelectorAll("[data-eye]").forEach((b) => b.onclick = () => { const input = p.querySelector("#" + b.dataset.eye); input.type = input.type === "password" ? "text" : "password"; b.setAttribute("aria-label", input.type === "password" ? "Show password" : "Hide password"); });
-    googleSignupPanel = p;
-    p.querySelector("#su-pass").required = false;
-    const googleSlot = document.createElement("div"); googleSlot.id = "su-google-btn"; googleSlot.className = "jcm-google-btn"; p.querySelector(".jcm-auth-actions").before(googleSlot); renderGoogleButton(googleSlot, 300);
+    googleSignupPanel = null;
     p.querySelector("#su-cancel").onclick = () => { googleSignupPanel = null; closeAuth(); };
     p.querySelector("#su-campus").onchange = (e) => p.querySelector("#su-grade").innerHTML = gradeOptions(e.target.value);
-    p.querySelector("#su-submit").onclick = () => { const usernameInput = p.querySelector("#su-username").value.trim(), username = normalizeUsername(usernameInput), email = p.querySelector("#su-email").value.trim().toLowerCase(), name = p.querySelector("#su-name").value.trim(), pass = p.querySelector("#su-pass").value, campus = p.querySelector("#su-campus").value, grade = p.querySelector("#su-grade").value; if (!usernameInput || !name || !email || pass.length < 8) return p.querySelector("#su-error").textContent = "Enter all details and use a password of at least 8 characters."; if (!/^[a-zA-Z0-9._-]{3,40}$/.test(usernameInput)) return p.querySelector("#su-error").textContent = "Username must be 3-40 characters using letters, numbers, dot, underscore or hyphen."; if (accounts[username] || readJson(REQUEST_KEY, []).some((r) => normalizeUsername(r.username || "") === username && r.status === "Pending")) return p.querySelector("#su-error").textContent = "That username is already in use or awaiting approval."; const requests = readJson(REQUEST_KEY, []); requests.push({ id: "REQ-" + Date.now(), username: usernameInput, name, email, password: pass, role: p.querySelector("#su-role").value, campus, className: grade, status: "Pending", submitted: new Date().toISOString() }); localStorage.setItem(REQUEST_KEY, JSON.stringify(requests)); closeAuth(); error.textContent = "Request sent. An administrator must approve your account."; };
+    p.querySelector("#su-submit").onclick = async () => {
+      const username = p.querySelector("#su-username").value.trim();
+      const email = p.querySelector("#su-email").value.trim().toLowerCase();
+      const name = p.querySelector("#su-name").value.trim();
+      const password = p.querySelector("#su-pass").value;
+      const campus = p.querySelector("#su-campus").value;
+      const className = p.querySelector("#su-grade").value;
+      const signupError = p.querySelector("#su-error");
+      if (!username || !name || !email || password.length < 8) {
+        signupError.textContent = "Enter all details and use a password of at least 8 characters.";
+        return;
+      }
+      if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username)) {
+        signupError.textContent = "Username must be 3-40 characters using letters, numbers, dot, underscore or hyphen.";
+        return;
+      }
+      const status = await window.jcmSupabaseReady;
+      if (!status?.enabled) {
+        signupError.textContent = "Online registration is unavailable. Configure Supabase Auth in Netlify and try again.";
+        return;
+      }
+      const { data, error: createError } = await status.signUp(email, password, {
+        username,
+        name,
+        role: p.querySelector("#su-role").value,
+        campus,
+        className
+      });
+      if (createError) {
+        signupError.textContent = createError.message;
+        return;
+      }
+      closeAuth();
+      error.textContent = data.session
+        ? "Account created. You can now sign in with your email and password."
+        : "Account created. Check your email for a verification link before signing in.";
+    };
   };
-  document.getElementById("jcm-reset-link").onclick = () => { const p = authBox("Reset password", `<p>This local portal updates the password after the account username or email is confirmed. For production, connect this form to your email provider.</p><label>Username or email<input id="rp-email" autocomplete="username"></label><label>New password<input id="rp-pass" type="password" minlength="8"></label><div class="jcm-auth-actions"><button type="button" id="rp-cancel">Cancel</button><button type="button" id="rp-submit">Update password</button></div><p id="rp-error" class="jcm-login-error"></p>`); p.querySelector("#rp-cancel").onclick = closeAuth; p.querySelector("#rp-submit").onclick = () => { const identifier = p.querySelector("#rp-email").value.trim().toLowerCase(), pass = p.querySelector("#rp-pass").value, key = accounts[identifier] ? identifier : Object.keys(accounts).find((k) => normalizeUsername(accounts[k].username || "") === identifier); if (!key || pass.length < 8) return p.querySelector("#rp-error").textContent = "Use an existing username or email and a password of at least 8 characters."; accounts[key].password = pass; localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts)); closeAuth(); error.textContent = "Password updated. You can now sign in."; }; };
+  document.getElementById("jcm-reset-link").onclick = () => {
+    const p = authBox("Reset password", `<p>We will send a password-reset link to your account email.</p><label>Email<input id="rp-email" type="email" autocomplete="email" required></label><div class="jcm-auth-actions"><button type="button" id="rp-cancel">Cancel</button><button type="button" id="rp-submit">Send reset link</button></div><p id="rp-error" class="jcm-login-error"></p>`);
+    p.querySelector("#rp-cancel").onclick = closeAuth;
+    p.querySelector("#rp-submit").onclick = async () => {
+      const email = p.querySelector("#rp-email").value.trim().toLowerCase();
+      const resetError = p.querySelector("#rp-error");
+      if (!email) {
+        resetError.textContent = "Enter the email address for your account.";
+        return;
+      }
+      const status = await window.jcmSupabaseReady;
+      if (!status?.enabled) {
+        resetError.textContent = "Password reset is unavailable until Supabase Auth is configured.";
+        return;
+      }
+      const { error: sendError } = await status.sendPasswordReset(email);
+      if (sendError) {
+        resetError.textContent = sendError.message;
+        return;
+      }
+      closeAuth();
+      error.textContent = "If that email belongs to an account, a password-reset link is on its way.";
+    };
+  };
   function showAccessPanel() { const requests = readJson(REQUEST_KEY, []); const p = authBox("Account approvals", `<p>Approve only people whose identity and campus/class have been verified.</p><div id="jcm-requests">${requests.filter((r) => r.status === "Pending").map((r) => `<div class="jcm-request"><span><b>${r.username || "Username not supplied"}</b> · ${r.name}<br><small>${r.email} · ${r.role} · ${r.campus} · ${r.className}</small></span><span><button class="jcm-approve" data-approve="${r.id}">Approve</button> <button class="jcm-deny" data-deny="${r.id}">Decline</button></span></div>`).join("") || "<p>No pending requests.</p>"}</div><div class="jcm-auth-actions"><button type="button" id="jcm-close-access">Close</button></div>`); p.querySelector("#jcm-close-access").onclick = closeAuth; p.querySelectorAll("[data-approve]").forEach((b) => b.onclick = () => decideRequest(b.dataset.approve, true)); p.querySelectorAll("[data-deny]").forEach((b) => b.onclick = () => decideRequest(b.dataset.deny, false)); }
   function decideRequest(id, approve) { const requests = readJson(REQUEST_KEY, []), r = requests.find((x) => x.id === id); if (!r) return; r.status = approve ? "Approved" : "Declined"; if (approve) { const username = normalizeUsername(r.username || r.email); accounts[username] = { username: r.username || username, password: r.password, role: r.role, campus: r.campus, className: r.className, name: r.name, email: r.email, approved: true }; } localStorage.setItem(REQUEST_KEY, JSON.stringify(requests)); localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts)); showAccessPanel(); }
   window.jcmLogout = () => { window.jcmSupabase?.signOut(); sessionStorage.removeItem("jcm-session"); window.__jcmSession = null; modal.hidden = false; document.getElementById("jcm-logout")?.remove(); document.getElementById("jcm-access")?.remove(); };
