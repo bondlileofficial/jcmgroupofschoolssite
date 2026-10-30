@@ -28,12 +28,20 @@
     if (state === 'success') notice.dismissTimer = setTimeout(() => notice.remove(), 3500);
   };
   window.jcmSupabaseReady = (async () => {
-    const fallback = { enabled: false };
+    const fallback = (reason) => ({ enabled: false, reason });
     try {
       const response = await fetch('/.netlify/functions/supabase-config', { headers: { Accept: 'application/json' } });
-      if (!response.ok) return fallback;
+      if (!response.ok) {
+        const result = await response.json();
+        return fallback(result.error || `Supabase configuration request failed (${response.status}).`);
+      }
       const config = await response.json();
-      if (!config.url || !config.anonKey || !window.supabase?.createClient) return fallback;
+      if (!config.url || !config.anonKey) {
+        return fallback('Supabase public configuration is incomplete. Check your Netlify environment variables.');
+      }
+      if (!window.supabase?.createClient) {
+        return fallback('The Supabase client library did not load. Check the network connection and try again.');
+      }
       const client = window.supabase.createClient(config.url, config.anonKey);
       let stateTimer = null;
       let hydrated = false;
@@ -122,7 +130,7 @@
       };
     } catch (error) {
       console.warn('Supabase is not configured; browser fallback remains active.', error);
-      return fallback;
+      return fallback('Could not load Supabase configuration. Check that the Netlify function is deployed.');
     }
   })();
 </script>
@@ -2571,9 +2579,7 @@ Amount: ${money(p.amount)}`;
       const bootstrap = async () => {
         const seed = loadDb();
         const status = await window.jcmSupabaseReady;
-        if (!status?.enabled) {
-          window.jcmShowSyncNotice?.("Local storage only: configure Supabase in Netlify for changes to sync between devices.", "error");
-        } else {
+        if (status?.enabled) {
           const { data, error } = await status.client.auth.getSession();
           if (error) throw error;
           if (data?.session) {
@@ -2915,7 +2921,7 @@ Amount: ${money(p.amount)}`;
       }
       const status = await window.jcmSupabaseReady;
       if (!status?.enabled) {
-        signupError.textContent = "Online registration is unavailable. Configure Supabase Auth in Netlify and try again.";
+        signupError.textContent = status?.reason || "Supabase configuration is unavailable. Check the Netlify function and environment variables.";
         return;
       }
       const { data, error: createError } = await status.signUp(email, password, {
