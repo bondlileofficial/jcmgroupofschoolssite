@@ -3,7 +3,7 @@
   functions = "netlify/functions"
 
 [build.environment]
-  SECRETS_SCAN_OMIT_PATHS = "netlify/functions/supabase-config.js/system/jcm-school"
+  SECRETS_SCAN_OMIT_PATHS = "netlify/functions/supabase-config.js/system/jcm-school-system.html"
 
 [[redirects]]
   from = "/.netlify/functions/*"
