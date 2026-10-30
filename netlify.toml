@@ -3,9 +3,5 @@
   functions = "netlify/functions"
 
 [build.environment]
-  SECRETS_SCAN_OMIT_PATHS = "netlify/functions/supabase-config.js/system/jcm-school-system.html"
-
-[[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+  SECRETS_SCAN_OMIT_PATHS = "netlify/functions/supabase-config.js,System/jcm-school-system.html"
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_ANON_KEY,SUPABASE_URL"
