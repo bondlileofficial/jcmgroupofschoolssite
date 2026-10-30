@@ -70,7 +70,7 @@
         async bootstrapState(seed) {
           const row = await read('jcm_portal_state', 'primary');
           if (row?.state) return { state: migrate(row.state, seed), fromDatabase: true };
-          await write('jcm_portal_state', 'primary', seed, 'state');
+          await write('jcm_portal_state', 'primary',  seed, 'state');
           return { state: seed, fromDatabase: false };
         },
         markHydrated() {
