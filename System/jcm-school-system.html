@@ -2657,9 +2657,8 @@ Amount: ${money(p.amount)}`;
 </script>
 <style>
   #jcm-login{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:linear-gradient(135deg,#102f29,#176b53);font-family:var(--font,system-ui,sans-serif)}
-  #jcm-login[hidden]{display:none}.jcm-login-card{width:min(420px,92vw);padding:34px;background:#fff;border-radius:18px;box-shadow:0 24px 80px #051b1470}.jcm-login-card h1{margin:8px 0}.jcm-login-card p{color:#68776f}.jcm-login-card label{display:block;margin:16px 0 6px;font-size:13px;font-weight:700}.jcm-login-card input{display:block;width:100%;padding:12px;border:1px solid #dce7e1;border-radius:8px;margin-top:6px}.jcm-login-card button{width:100%;padding:12px;border:0;border-radius:8px;background:#176b53;color:#fff;font-weight:700;margin-top:14px;cursor:pointer}.jcm-login-error{color:#bd3e38!important;min-height:18px;font-size:13px}.jcm-demo{font-size:12px;color:#68776f;margin-top:16px}.jcm-demo code{background:#f0f5f2;padding:2px 4px;border-radius:4px}
+  #jcm-login[hidden]{display:none}.jcm-login-card{width:min(420px,92vw);padding:34px;background:#fff;border-radius:18px;box-shadow:0 24px 80px #051b1470}.jcm-login-card h1{margin:8px 0}.jcm-login-card p{color:#68776f}.jcm-login-card label{display:block;margin:16px 0 6px;font-size:13px;font-weight:700}.jcm-login-card input{display:block;width:100%;padding:12px;border:1px solid #dce7e1;border-radius:8px;margin-top:6px}.jcm-login-card button{width:100%;padding:12px;border:0;border-radius:8px;background:#176b53;color:#fff;font-weight:700;margin-top:14px;cursor:pointer}.jcm-login-error{color:#bd3e38!important;min-height:18px;font-size:13px}
   .jcm-secondary{background:#fff!important;color:#176b53!important;border:1px solid #176b53!important}.jcm-login-links{display:flex;gap:12px}.jcm-login-links button{background:none!important;color:#176b53!important;padding:4px!important;font-size:12px;text-decoration:underline}.jcm-google-btn{display:flex;justify-content:center;min-height:40px;margin:12px 0}.jcm-password-wrap{position:relative}.jcm-password-wrap input{padding-right:42px}.jcm-eye{position:absolute!important;right:5px;top:1px;width:34px!important;background:transparent!important;color:#176b53!important;padding:8px!important;margin:0!important}.jcm-auth-panel{position:fixed;inset:0;z-index:10000;background:#0008;display:grid;place-items:center;padding:20px}.jcm-auth-box{background:#fff;border-radius:16px;padding:26px;width:min(560px,96vw);max-height:90vh;overflow:auto}.jcm-auth-box h2{margin-top:0}.jcm-auth-box .jcm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.jcm-auth-box label{font-size:12px;font-weight:700}.jcm-auth-box input,.jcm-auth-box select{display:block;width:100%;padding:10px;margin-top:5px;border:1px solid #dce7e1;border-radius:7px}.jcm-auth-actions{display:flex;gap:10px;margin-top:18px}.jcm-auth-actions button{flex:1;padding:10px;border:0;border-radius:7px;background:#176b53;color:#fff;font-weight:700;cursor:pointer}.jcm-request{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid #e7eee9}.jcm-request button{padding:6px 9px;border:0;border-radius:6px;cursor:pointer}.jcm-approve{background:#176b53;color:#fff}.jcm-deny{background:#f2dddd;color:#9c2727}
-  .jcm-login-card .jcm-policy{margin:8px 0 0;text-align:center;font-size:12px}.jcm-login-card .jcm-policy a{color:#176b53}
 .fee-payment-row{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}.fee-payment-row:last-child{border-bottom:0}.fee-payment-row .input{width:125px}.fee-payment-row .input[type=number]{width:90px}.fee-payments{min-width:430px}.fee-table{min-width:1480px}.fee-table tbody tr.fee-band-grey td{background:rgba(107,119,137,.10)}.fee-table tbody tr.fee-band-navy td{background:rgba(10,31,77,.08)}.fee-table tbody tr.fee-learner-row:hover td{background:rgba(42,120,214,.12)}.fee-table td{vertical-align:top}.fee-editor-row td{background:var(--surface-2)!important;border-top:1px dashed var(--line-2)}.fee-editor{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;padding:16px 20px}.fee-editor-actions{display:flex;gap:8px;align-items:center}.fees-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}.fees-kpis .kpi small{min-height:30px}.fee-panel .card-h{align-items:flex-start}.fee-panel .card-h h2{margin-bottom:4px}@media(max-width:1200px){.fees-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.fee-editor{grid-template-columns:1fr 1fr}.fee-editor-actions{grid-column:1/-1}}@media(max-width:900px){.fee-payment-row{align-items:flex-start;flex-direction:column}.fee-payments{min-width:300px}.fee-editor{grid-template-columns:1fr}.fee-editor-actions{grid-column:auto}.fees-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .database-loading{min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink)}.database-loading-card{display:grid;gap:8px;padding:28px 34px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow)}.database-loading-card span{color:var(--ink-3);font-size:13px}
 </style>
@@ -2668,36 +2667,35 @@ Amount: ${money(p.amount)}`;
     <div class="brand-mark" style="width:52px;height:52px;border-radius:14px;background:#d6a146;color:#103e32;display:grid;place-items:center;font-weight:900">JCM</div>
     <p style="letter-spacing:.12em;font-size:11px;font-weight:800">JCM GROUP OF SCHOOLS</p>
     <h1>Sign in</h1><p>Use your school account to continue.</p>
-    <label>Username<input id="jcm-user" required autocomplete="username" placeholder="admin.primary@jcm"></label>
+    <label>Username<input id="jcm-user" required autocomplete="username" placeholder="Email address"></label>
     <label>Password<div class="jcm-password-wrap"><input id="jcm-pass" required type="password" autocomplete="current-password" placeholder="Password"><button type="button" class="jcm-eye" data-eye="jcm-pass" aria-label="Show password">◉</button></div></label>
     <button type="submit">Sign in to dashboard</button>
     <div id="jcm-google-btn" class="jcm-google-btn" aria-label="Continue with Google"></div>
     <div class="jcm-login-links"><button type="button" id="jcm-signup-link">Create an account</button><button type="button" id="jcm-reset-link">Reset password</button></div>
     <p id="jcm-login-error" class="jcm-login-error"></p>
-    <p class="jcm-policy"><a href="../privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a></p>
-    <div class="jcm-demo">Demo: <code>admin.primary@jcm</code> / <code>Primary@123</code><br>Teacher: <code>teacher.primary@jcm</code> / <code>Teacher@123</code></div>
   </form>
 </div>
 <script>
 (() => {
   const ACCOUNT_KEY = "jcm-portal-accounts-v1", REQUEST_KEY = "jcm-portal-signup-requests-v1";
   const GOOGLE_CLIENT_ID = "699398376985-mp850pvhgv6aconerp6uckt4fnclcu89.apps.googleusercontent.com";
-  const defaultAccounts = {
-    "admin.primary@jcm": { password: "Primary@123", role: "Admin", campus: "primary", className: "", name: "Primary Admin", approved: true },
-    "admin.academy@jcm": { password: "Academy@123", role: "Admin", campus: "academy", className: "", name: "Academy Admin", approved: true },
-    "admin.secondary@jcm": { password: "Secondary@123", role: "Admin", campus: "high", className: "", name: "High School Admin", approved: true },
-    "principal.primary@jcm": { password: "Principal@123", role: "Principal", campus: "primary", className: "", name: "Primary Principal", approved: true },
-    "director@jcm": { password: "Director@123", role: "Director", campus: "all", className: "", name: "School Director", approved: true },
-    "bursar.primary@jcm": { password: "Bursar@123", role: "Bursar", campus: "primary", className: "", name: "Primary Bursar", approved: true },
-    "teacher.primary@jcm": { password: "Teacher@123", role: "Teacher", campus: "primary", className: "Grade 3", name: "Primary Teacher", approved: true },
-    "teacher.academy@jcm": { password: "Teacher@123", role: "Teacher", campus: "academy", className: "Grade 3", name: "Academy Teacher", approved: true },
-    "teacher.secondary@jcm": { password: "Teacher@123", role: "Teacher", campus: "high", className: "Form 3", name: "High School Teacher", approved: true },
-    "student.primary@jcm": { password: "Student@123", role: "Student", campus: "primary", className: "Grade 3", name: "Primary Student", approved: true }
-  };
   const readJson = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || "null") || fallback; } catch (_) { return fallback; } };
-  const accounts = readJson(ACCOUNT_KEY, defaultAccounts);
-  Object.entries(defaultAccounts).forEach(([email, account]) => { if (!accounts[email]) accounts[email] = account; });
+  const accounts = readJson(ACCOUNT_KEY, {});
+  Object.entries(accounts).forEach(([username, account]) => {
+    if (!account || typeof account !== "object" || Object.prototype.hasOwnProperty.call(account, "password")) delete accounts[username];
+  });
   localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts));
+  const requests = readJson(REQUEST_KEY, []);
+  let removedRequestPasswords = false;
+  if (Array.isArray(requests)) {
+    requests.forEach((request) => {
+      if (request && typeof request === "object" && Object.prototype.hasOwnProperty.call(request, "password")) {
+        delete request.password;
+        removedRequestPasswords = true;
+      }
+    });
+    if (removedRequestPasswords) localStorage.setItem(REQUEST_KEY, JSON.stringify(requests));
+  }
   const persistAccounts = (value = accounts) => {
     localStorage.setItem(ACCOUNT_KEY, JSON.stringify(value));
     window.jcmSupabase?.saveAccounts(value);
@@ -2714,10 +2712,28 @@ Amount: ${money(p.amount)}`;
     ]);
     if (remoteAccounts && typeof remoteAccounts === "object") {
       Object.keys(accounts).forEach((key) => delete accounts[key]);
-      Object.assign(accounts, remoteAccounts);
-      localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts));
+      Object.entries(remoteAccounts).forEach(([username, account]) => {
+        if (account && typeof account === "object" && !Object.prototype.hasOwnProperty.call(account, "password")) {
+          accounts[username] = account;
+        }
+      });
+      persistAccounts(accounts);
     }
-    if (Array.isArray(remoteRequests)) localStorage.setItem(REQUEST_KEY, JSON.stringify(remoteRequests));
+    if (Array.isArray(remoteRequests)) {
+      let removedRemotePasswords = false;
+      remoteRequests.forEach((request) => {
+        if (request && typeof request === "object" && Object.prototype.hasOwnProperty.call(request, "password")) {
+          delete request.password;
+          removedRemotePasswords = true;
+        }
+      });
+      localStorage.setItem(REQUEST_KEY, JSON.stringify(remoteRequests));
+      if (removedRemotePasswords) {
+        window.jcmSupabase.saveRequests(remoteRequests).catch((saveError) => {
+          console.error("Could not remove legacy plaintext passwords from signup requests.", saveError);
+        });
+      }
+    }
   });
   const originalSetItem = localStorage.setItem.bind(localStorage);
   localStorage.setItem = (key, value) => {
@@ -2966,7 +2982,7 @@ Amount: ${money(p.amount)}`;
     };
   };
   function showAccessPanel() { const requests = readJson(REQUEST_KEY, []); const p = authBox("Account approvals", `<p>Approve only people whose identity and campus/class have been verified.</p><div id="jcm-requests">${requests.filter((r) => r.status === "Pending").map((r) => `<div class="jcm-request"><span><b>${r.username || "Username not supplied"}</b> · ${r.name}<br><small>${r.email} · ${r.role} · ${r.campus} · ${r.className}</small></span><span><button class="jcm-approve" data-approve="${r.id}">Approve</button> <button class="jcm-deny" data-deny="${r.id}">Decline</button></span></div>`).join("") || "<p>No pending requests.</p>"}</div><div class="jcm-auth-actions"><button type="button" id="jcm-close-access">Close</button></div>`); p.querySelector("#jcm-close-access").onclick = closeAuth; p.querySelectorAll("[data-approve]").forEach((b) => b.onclick = () => decideRequest(b.dataset.approve, true)); p.querySelectorAll("[data-deny]").forEach((b) => b.onclick = () => decideRequest(b.dataset.deny, false)); }
-  function decideRequest(id, approve) { const requests = readJson(REQUEST_KEY, []), r = requests.find((x) => x.id === id); if (!r) return; r.status = approve ? "Approved" : "Declined"; if (approve) { const username = normalizeUsername(r.username || r.email); accounts[username] = { username: r.username || username, password: r.password, role: r.role, campus: r.campus, className: r.className, name: r.name, email: r.email, approved: true }; } localStorage.setItem(REQUEST_KEY, JSON.stringify(requests)); localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts)); showAccessPanel(); }
+  function decideRequest(id, approve) { const requests = readJson(REQUEST_KEY, []), r = requests.find((x) => x.id === id); if (!r) return; r.status = approve ? "Approved" : "Declined"; if (approve) { const username = normalizeUsername(r.username || r.email); accounts[username] = { username: r.username || username, role: r.role, campus: r.campus, className: r.className, name: r.name, email: r.email, approved: true }; } localStorage.setItem(REQUEST_KEY, JSON.stringify(requests)); localStorage.setItem(ACCOUNT_KEY, JSON.stringify(accounts)); showAccessPanel(); }
   window.jcmLogout = () => { window.jcmSupabase?.signOut(); sessionStorage.removeItem("jcm-session"); window.__jcmSession = null; modal.hidden = false; document.getElementById("jcm-logout")?.remove(); document.getElementById("jcm-access")?.remove(); };
   setInterval(decorate, 1000);
 })();

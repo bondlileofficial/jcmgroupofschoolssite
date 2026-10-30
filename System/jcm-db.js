@@ -5,17 +5,7 @@ const JCM_SCHOOLS = {
   high: { id: 'high', name: 'JCM High School', grades: ['Form 1', 'Form 2', 'Form 3', 'Form 4', 'Form 5', 'Form 6'] }
 };
 
-const ACCOUNTS = [
-  ['admin.primary@jcm', 'Primary@123', 'Admin', 'primary', 'All classes'],
-  ['admin.academy@jcm', 'Academy@123', 'Admin', 'academy', 'All classes'],
-  ['admin.secondary@jcm', 'Secondary@123', 'Admin', 'secondary', 'All classes'],
-  ['principal.primary@jcm', 'Principal@123', 'Principal', 'primary', 'All classes'],
-  ['bursar.primary@jcm', 'Bursar@123', 'Bursar', 'primary', 'All classes'],
-  ['teacher.primary@jcm', 'Teacher@123', 'Teacher', 'primary', 'Grade 3'],
-  ['teacher.academy@jcm', 'Teacher@123', 'Teacher', 'academy', 'Form 2'],
-  ['teacher.secondary@jcm', 'Teacher@123', 'Teacher', 'secondary', 'Form 3'],
-  ['student.primary@jcm', 'Student@123', 'Student', 'primary', 'Grade 3']
-].map(([username, password, role, school, className]) => ({ username, password, role, school, className }));
+const ACCOUNTS = [];
 
 const workbookNames = {
   'E.C.D A': 'Mhlanga|Chipo Chloe,Musaruro|Mya,Mumba|Asher,Mpofu|Thamusanqa,Tshuma|Thandeka,Munkuli|Theo,Sibanda|Ethan,Manyathi|Ryan,Mandicheta|Dashawn,Mberengwa|Clarity,Kamondera|Mitchel',
